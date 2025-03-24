@@ -7,25 +7,26 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 
+const baseUrl = "https://pitaka.lk/main/";
+
 // Navigate the page to a URL.
-await page.goto("https://developer.chrome.com/");
+await page.goto(baseUrl);
 
 // Set screen size.
 await page.setViewport({ width: 1080, height: 1024 });
 
-// Type into search box.
-await page.locator(".devsite-search-field").fill("automate beyond recorder");
+const doc = await page.locator('li[node-id="1"]');
+const parent = await doc.waitHandle();
 
-// Wait and click on first result.
-await page.locator(".devsite-result-item-link").click();
+const pageIds = await parent.evaluate((el) => {
+  const pageList = el.querySelectorAll("li[node-id][collections]");
+  const pageListIds: Array<string | null> = []
+  pageList.forEach((li) => pageListIds.push(li.getAttribute("node-id")));
+  return pageListIds;
+});
 
-// Locate the full title with a unique string.
-const textSelector = await page
-  .locator("text/Customize and automate")
-  .waitHandle();
-const fullTitle = await textSelector?.evaluate((el) => el.textContent);
 
-// Print the full title.
-console.log('The title of this blog post is "%s".', fullTitle);
+
+console.log(pageIds);
 
 await browser.close();
